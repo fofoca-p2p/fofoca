@@ -1,4 +1,4 @@
-const hyperlog = require('../')
+const hyperlog = require('../src')
 const memdb = require('memdb')
 
 const log = hyperlog(memdb())

@@ -1,4 +1,4 @@
-var hyperlog = require('../')
+var hyperlog = require('../src')
 var memdb = require('memdb')
 var sodium = require('sodium').api
 var eq = require('buffer-equals')
