@@ -8,7 +8,6 @@ const mutexify = require('mutexify')
 const cuid = require('cuid')
 const logs = require('level-logs')
 const { EventEmitter } = require('events')
-const util = require('util')
 const enumerate = require('level-enumerate')
 const replicate = require('./lib/replicate')
 const messages = require('./lib/messages')
@@ -166,7 +165,7 @@ function createLiveStream (dag, opts) {
 }
 
 class Hyperlog extends EventEmitter {
-  constructor(db, opts = {}) {
+  constructor (db, opts = {}) {
     super()
 
     this.id = defined(opts.id, null)

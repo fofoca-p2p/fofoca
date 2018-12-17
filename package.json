@@ -39,7 +39,8 @@
     ]
   },
   "scripts": {
-    "test": "tape test/*"
+    "test": "tape test/*",
+    "lint": "standard --fix lib/*.js index.js"
   },
   "repository": {
     "type": "git",
