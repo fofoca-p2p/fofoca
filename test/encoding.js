@@ -19,13 +19,13 @@ tape('add node with encoding option', function (t) {
   var hyper = hyperlog(memdb())
 
   hyper.add(null, { msg: 'hello world' }, { valueEncoding: 'json' },
-  function (err, node) {
-    t.error(err)
-    t.ok(node.key, 'has key')
-    t.same(node.links, [])
-    t.same(node.value, { msg: 'hello world' })
-    t.end()
-  })
+    function (err, node) {
+      t.error(err)
+      t.ok(node.key, 'has key')
+      t.same(node.links, [])
+      t.same(node.value, { msg: 'hello world' })
+      t.end()
+    })
 })
 
 tape('append node', function (t) {

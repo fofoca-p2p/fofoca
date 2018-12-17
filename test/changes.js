@@ -31,7 +31,7 @@ tape('changes since', function (t) {
       t.error(err)
       hyper.add(null, 'c', function (err, c) {
         t.error(err)
-        collect(hyper.createReadStream({since: 2}), function (err, changes) {
+        collect(hyper.createReadStream({ since: 2 }), function (err, changes) {
           t.error(err)
           t.same(changes, [c], 'has 1 change')
           t.end()
@@ -45,7 +45,7 @@ tape('live changes', function (t) {
   var hyper = hyperlog(memdb())
   var expects = ['a', 'b', 'c']
 
-  hyper.createReadStream({live: true})
+  hyper.createReadStream({ live: true })
     .on('data', function (data) {
       var next = expects.shift()
       t.same(data.value.toString(), next, 'was expected value')
@@ -72,7 +72,7 @@ tape('parallel add orders changes', function (t) {
         t.same(c.change, i + 1, 'correct change number')
         values[c.value.toString()] = true
       })
-      t.same(values, {a: true, b: true, c: true}, 'contains all values')
+      t.same(values, { a: true, b: true, c: true }, 'contains all values')
       t.end()
     })
   }

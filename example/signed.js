@@ -7,7 +7,7 @@ var keys = sodium.crypto_sign_keypair()
 var log = hyperlog(memdb(), {
   identity: keys.publicKey,
   sign: function (node, cb) {
-    var bkey = Buffer(node.key, 'hex')
+    var bkey = Buffer.from(node.key, 'hex')
     cb(null, sodium.crypto_sign(bkey, keys.secretKey))
   }
 })
@@ -15,15 +15,15 @@ var clone = hyperlog(memdb(), {
   verify: function (node, cb) {
     if (!node.signature) return cb(null, false)
     if (!eq(node.identity, keys.publicKey)) return cb(null, false)
-    var bkey = Buffer(node.key, 'hex')
+    var bkey = Buffer.from(node.key, 'hex')
     var m = sodium.crypto_sign_open(node.signature, node.identity)
     cb(null, eq(m, bkey))
   }
 })
 
 var sync = function (a, b) {
-  a = a.createReplicationStream({mode: 'push'})
-  b = b.createReplicationStream({mode: 'pull'})
+  a = a.createReplicationStream({ mode: 'push' })
+  b = b.createReplicationStream({ mode: 'pull' })
 
   a.on('push', function () {
     console.log('a pushed')
@@ -52,7 +52,7 @@ var sync = function (a, b) {
   a.pipe(b).pipe(a)
 }
 
-clone.createReadStream({live: true}).on('data', function (data) {
+clone.createReadStream({ live: true }).on('data', function (data) {
   console.log('change: (%d) %s', data.change, data.key)
 })
 
