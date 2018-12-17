@@ -27,7 +27,7 @@ tape('add and preadd events', function (t) {
       t.error(err)
       t.ok(node2.key, 'has key')
       t.same(node2.links, [node.key], 'has links')
-      t.same(node2.value, new Buffer('world'))
+      t.same(node2.value, Buffer.from('world'))
       t.deepEqual(order, [
         'preadd hello',
         'add hello',

@@ -40,7 +40,7 @@
   },
   "scripts": {
     "test": "tape test/*",
-    "lint": "standard --fix lib/*.js index.js"
+    "lint": "standard --fix lib/*.js index.js test/*.js"
   },
   "repository": {
     "type": "git",
