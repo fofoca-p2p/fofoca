@@ -38,3 +38,7 @@ tape('add and preadd events', function (t) {
   })
   t.deepEqual(order, ['preadd hello'])
 })
+
+tape('sync event', (t) => {
+
+})

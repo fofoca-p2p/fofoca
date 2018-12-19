@@ -5,8 +5,8 @@ const log = hyperlog(memdb())
 const clone = hyperlog(memdb())
 
 function sync (a, b) {
-  a = a.createReplicationStream({ mode: 'push' })
-  b = b.createReplicationStream({ mode: 'pull' })
+  a = a.createReplicationStream({ live: true })
+  b = b.createReplicationStream({ live: true })
 
   a.on('push', () => {
     console.log('a pushed')
@@ -32,18 +32,26 @@ function sync (a, b) {
     console.log('b ended')
   })
 
+  b.on('sync', () => {
+    console.log('b sync')
+  })
+
   a.pipe(b).pipe(a)
 }
 
 clone.createReadStream({ live: true }).on('data', data => {
-  console.log('change: (%d) %s', data.change, data.key)
+  console.log('change: (%d) %s %s', data.change, data.key, data.value)
 })
 
-log.add(null, 'hello', (err, node) => {
+log.append('hello', (err) => {
   if (err) throw err
-  log.add(node, 'world', (err, node) => {
+  log.append('world', (err) => {
     if (err) throw err
     sync(log, clone)
-    log.add(null, 'meh')
+    log.append('meh')
   })
 })
+
+setInterval(() => {
+  log.append('lorem')
+}, 2000)

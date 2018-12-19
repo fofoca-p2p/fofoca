@@ -90,6 +90,7 @@ module.exports = function (dag, opts = {}) {
   function update (cb) {
     if (done || !localSentWants || !localSentHeads || !remoteSentWants || !remoteSentHeads) return cb()
     done = true
+    console.log('done')
     if (!live) return stream.finalize(cb)
     sendChanges()
     cb()
@@ -147,7 +148,9 @@ module.exports = function (dag, opts = {}) {
       valueEncoding: 'binary'
     }
     dag.add(node.links, node.value, opts, (err) => {
-      if (!err) return afterAdd(cb)
+      if (!err) {
+        return afterAdd(cb)
+      }
       if (!err.notFound) return cb(err)
       incoming.push(node, cb)
     })
@@ -156,7 +159,10 @@ module.exports = function (dag, opts = {}) {
   function afterAdd (cb) {
     stream.emit('pull')
     if (!localSentWants && !--missing) return sentWants(cb)
-    if (!incoming.length) return cb()
+    if (!incoming.length) {
+      stream.emit('sync')
+      return cb()
+    }
     incoming.pull((node) => {
       receiveNode(node, cb)
     })

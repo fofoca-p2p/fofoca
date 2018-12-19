@@ -245,6 +245,10 @@ When a node is rejected, this event fires. Otherwise the `add` event will fire.
 You can track `preadd` events against both `add` and `reject` events in
 combination to know when the log is completely caught up.
 
+#### log.on('sync', () => {})
+
+When log is fully synced between a peer.
+
 ## Hyperlog Hygiene
 
 A hyperlog will refer to potentially *many* different logs as it replicates with
