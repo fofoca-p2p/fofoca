@@ -90,7 +90,7 @@ module.exports = function (dag, opts = {}) {
   function update (cb) {
     if (done || !localSentWants || !localSentHeads || !remoteSentWants || !remoteSentHeads) return cb()
     done = true
-    console.log('done')
+
     if (!live) return stream.finalize(cb)
     sendChanges()
     cb()

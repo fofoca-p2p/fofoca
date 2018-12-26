@@ -39,18 +39,19 @@ function sync (a, b) {
   a.pipe(b).pipe(a)
 }
 
+sync(log, clone)
+
 clone.createReadStream({ live: true }).on('data', data => {
   console.log('change: (%d) %s %s', data.change, data.key, data.value)
 })
 
-log.append('hello', (err) => {
-  if (err) throw err
-  log.append('world', (err) => {
-    if (err) throw err
-    sync(log, clone)
-    log.append('meh')
+log.append('hello')
+  .then(() => {
+    return log.append('world')
   })
-})
+  .then(() => {
+    return log.append('meh')
+  })
 
 setInterval(() => {
   log.append('lorem')

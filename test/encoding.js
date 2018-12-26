@@ -28,28 +28,23 @@ tape('add node with encoding option', function (t) {
     })
 })
 
-tape('append node', function (t) {
-  var hyper = hyperlog(memdb(), { valueEncoding: 'json' })
+tape('append node', async (t) => {
+  const hyper = hyperlog(memdb(), { valueEncoding: 'json' })
+  const node = await hyper.append({ msg: 'hello world' })
 
-  hyper.append({ msg: 'hello world' }, function (err, node) {
-    t.error(err)
-    t.ok(node.key, 'has key')
-    t.same(node.links, [])
-    t.same(node.value, { msg: 'hello world' })
-    t.end()
-  })
+  t.ok(node.key, 'has key')
+  t.same(node.links, [])
+  t.same(node.value, { msg: 'hello world' })
+  t.end()
 })
 
-tape('append node with encoding option', function (t) {
-  var hyper = hyperlog(memdb())
-
-  hyper.append({ msg: 'hello world' }, { valueEncoding: 'json' }, function (err, node) {
-    t.error(err)
-    t.ok(node.key, 'has key')
-    t.same(node.links, [])
-    t.same(node.value, { msg: 'hello world' })
-    t.end()
-  })
+tape('append node with encoding option', async (t) => {
+  const hyper = hyperlog(memdb())
+  const node = await hyper.append({ msg: 'hello world' }, { valueEncoding: 'json' })
+  t.ok(node.key, 'has key')
+  t.same(node.links, [])
+  t.same(node.value, { msg: 'hello world' })
+  t.end()
 })
 
 tape('add node with links', function (t) {

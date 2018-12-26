@@ -567,19 +567,19 @@ class Hyperlog extends EventEmitter {
     }
   }
 
-  append (value, opts, cb) {
-    if (typeof opts === 'function') {
-      cb = opts
-      opts = {}
-    }
-    if (!cb) cb = noop
-    if (!opts) opts = {}
+  append (value, opts = {}) {
+    return new Promise((resolve, reject) => {
+      const cb = (err, val) => {
+        if (err) reject(err)
+        else resolve(val)
+      }
 
-    this.lock((release) => {
-      this.heads((err, heads) => {
-        if (err) return release(cb, err)
-        opts.release = release
-        this.add(heads, value, opts, cb)
+      this.lock((release) => {
+        this.heads((err, heads) => {
+          if (err) return release(reject, err)
+          opts.release = release
+          this.add(heads, value, opts, cb)
+        })
       })
     })
   }
