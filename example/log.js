@@ -39,7 +39,11 @@ function sync (a, b) {
   a.pipe(b).pipe(a)
 }
 
-sync(log, clone)
+Promise
+  .all([log.ready(), clone.ready()])
+  .then(() => {
+    sync(log, clone)
+  })
 
 clone.createReadStream({ live: true }).on('data', data => {
   console.log('change: (%d) %s %s', data.change, data.key, data.value)

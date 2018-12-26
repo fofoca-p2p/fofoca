@@ -153,7 +153,7 @@ function createLiveStream (dag, opts) {
   }
 
   dag.on('add', kick)
-  dag.ready(kick)
+  dag.ready().then(kick)
 
   var rs = from.obj(read)
 
@@ -219,14 +219,13 @@ class Hyperlog extends EventEmitter {
     })
   }
 
-  // Call callback 'cb' once the hyperlog is ready for use (knows some
-  // fundamental properties about itself from the leveldb). If it's already
-  // ready, cb is called immediately.
-  ready (cb) {
-    if (this.id) return cb()
-    this.lock((release) => {
-      release()
-      cb()
+  ready () {
+    return new Promise((resolve, reject) => {
+      if (this.id) return resolve()
+      this.lock(release => {
+        release()
+        resolve()
+      })
     })
   }
 
@@ -450,7 +449,7 @@ class Hyperlog extends EventEmitter {
       else self.lock(onlocked)
 
       function onlocked (release) {
-        self.ready(function () {
+        self.ready().then(() => {
           self.logs.head(id, function (err, seq) {
             if (err) return release(cb, err)
             done(null, seq, release)
