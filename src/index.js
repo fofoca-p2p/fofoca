@@ -296,15 +296,17 @@ class Hyperlog extends EventEmitter {
     return replicate(this, opts)
   }
 
-  add (links, value, opts, cb) {
-    if (typeof opts === 'function') {
-      cb = opts
-      opts = {}
-    }
-    if (!cb) cb = noop
-    this.batch([{ links: links, value: value }], opts, function (err, nodes) {
-      if (err) cb(err)
-      else cb(null, nodes[0])
+  add (links, value, opts = {}) {
+    return new Promise((resolve, reject) => {
+      const cb = (err, val) => {
+        if (err) reject(err)
+        else resolve(val)
+      }
+
+      this.batch([{ links: links, value: value }], opts, function (err, nodes) {
+        if (err) cb(err)
+        else cb(null, nodes[0])
+      })
     })
   }
 
@@ -568,16 +570,16 @@ class Hyperlog extends EventEmitter {
 
   append (value, opts = {}) {
     return new Promise((resolve, reject) => {
-      const cb = (err, val) => {
-        if (err) reject(err)
-        else resolve(val)
-      }
-
       this.lock((release) => {
-        this.heads((err, heads) => {
+        this.heads(async (err, heads) => {
           if (err) return release(reject, err)
           opts.release = release
-          this.add(heads, value, opts, cb)
+          try {
+            const node = await this.add(heads, value, opts)
+            resolve(node)
+          } catch (error) {
+            reject(error)
+          }
         })
       })
     })

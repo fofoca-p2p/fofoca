@@ -1,93 +1,82 @@
-var hyperlog = require('../src')
-var tape = require('tape')
-var memdb = require('memdb')
-var collect = require('stream-collector')
+const hyperlog = require('../src')
+const tape = require('tape')
+const memdb = require('memdb')
+const collect = require('stream-collector')
 
-tape('add node', function (t) {
-  var hyper = hyperlog(memdb())
+tape('add node', async (t) => {
+  const hyper = hyperlog(memdb())
+  const node = await hyper.add(null, 'hello world')
 
-  hyper.add(null, 'hello world', function (err, node) {
-    t.error(err)
-    t.ok(node.key, 'has key')
-    t.same(node.links, [])
-    t.same(node.value, Buffer.from('hello world'))
-    t.end()
-  })
+  t.ok(node.key, 'has key')
+  t.same(node.links, [])
+  t.same(node.value, Buffer.from('hello world'))
+  t.end()
 })
 
-tape('add node with links', function (t) {
-  var hyper = hyperlog(memdb())
+tape('add node with links', async (t) => {
+  const hyper = hyperlog(memdb())
 
-  hyper.add(null, 'hello', function (err, node) {
-    t.error(err)
-    hyper.add(node, 'world', function (err, node2) {
-      t.error(err)
-      t.ok(node2.key, 'has key')
-      t.same(node2.links, [node.key], 'has links')
-      t.same(node2.value, Buffer.from('world'))
-      t.end()
-    })
-  })
+  const node = await hyper.add(null, 'hello')
+  const node2 = await hyper.add(node, 'world')
+
+  t.ok(node2.key, 'has key')
+  t.same(node2.links, [node.key], 'has links')
+  t.same(node2.value, Buffer.from('world'))
+  t.end()
 })
 
-tape('cannot add node with bad links', function (t) {
-  var hyper = hyperlog(memdb())
+tape('cannot add node with bad links', async (t) => {
+  const hyper = hyperlog(memdb())
 
-  hyper.add('i-do-not-exist', 'hello world', function (err) {
+  try {
+    await hyper.add('i-do-not-exist', 'hello world')
+  } catch (err) {
     t.ok(err, 'had error')
     t.ok(err.notFound, 'not found error')
+  } finally {
     t.end()
-  })
+  }
 })
 
-tape('heads', function (t) {
-  var hyper = hyperlog(memdb())
+tape('heads', async (t) => {
+  const hyper = hyperlog(memdb())
 
-  hyper.heads(function (err, heads) {
+  hyper.heads(async (err, heads) => {
     t.error(err)
     t.same(heads, [], 'no heads yet')
-    hyper.add(null, 'a', function (err, node) {
+    const node = await hyper.add(null, 'a')
+    hyper.heads(async (err, heads) => {
       t.error(err)
+      t.same(heads, [node], 'has head')
+      const node2 = await hyper.add(node, 'b')
       hyper.heads(function (err, heads) {
         t.error(err)
-        t.same(heads, [node], 'has head')
-        hyper.add(node, 'b', function (err, node2) {
-          t.error(err)
-          hyper.heads(function (err, heads) {
-            t.error(err)
-            t.same(heads, [node2], 'new heads')
-            t.end()
-          })
-        })
-      })
-    })
-  })
-})
-
-tape('deduplicates', function (t) {
-  var hyper = hyperlog(memdb())
-
-  hyper.add(null, 'hello world', function (err, node) {
-    t.error(err)
-    hyper.add(null, 'hello world', function (err, node) {
-      t.error(err)
-      collect(hyper.createReadStream(), function (err, changes) {
-        t.error(err)
-        t.same(changes.length, 1, 'only one change')
+        t.same(heads, [node2], 'new heads')
         t.end()
       })
     })
   })
 })
 
-tape('deduplicates -- same batch', function (t) {
-  var hyper = hyperlog(memdb())
+tape('deduplicates', async (t) => {
+  const hyper = hyperlog(memdb())
 
-  var doc = { links: [], value: 'hello world' }
-
-  hyper.batch([doc, doc], function (err, nodes) {
+  await hyper.add(null, 'hello world')
+  await hyper.add(null, 'hello world')
+  collect(hyper.createReadStream(), function (err, changes) {
     t.error(err)
-    collect(hyper.createReadStream(), function (err, changes) {
+    t.same(changes.length, 1, 'only one change')
+    t.end()
+  })
+})
+
+tape('deduplicates -- same batch', async (t) => {
+  const hyper = hyperlog(memdb())
+  const doc = { links: [], value: 'hello world' }
+
+  hyper.batch([doc, doc], (err, nodes) => {
+    t.error(err)
+    collect(hyper.createReadStream(), (err, changes) => {
       t.error(err)
       t.same(changes.length, 1, 'only one change')
       t.same(hyper.changes, 1, 'only one change')
@@ -96,18 +85,20 @@ tape('deduplicates -- same batch', function (t) {
   })
 })
 
-tape('bug repro: bad insert links results in correct preadd/add/reject counts', function (t) {
-  var hyper = hyperlog(memdb())
+tape('bug repro: bad insert links results in correct preadd/add/reject counts', async (t) => {
+  const hyper = hyperlog(memdb())
 
-  var pending = 0
-  hyper.on('preadd', function (node) { pending++ })
-  hyper.on('add', function (node) { pending-- })
-  hyper.on('reject', function (node) { pending-- })
+  let pending = 0
+  hyper.on('preadd', (node) => { pending += 1 })
+  hyper.on('add', (node) => { pending -= 1 })
+  hyper.on('reject', (node) => { pending -= 1 })
 
-  hyper.add(['123'], 'hello', function (err, node) {
-    t.ok(err)
-
+  try {
+    await hyper.add(['123'], 'hello')
+  } catch (error) {
+    t.ok(error)
+  } finally {
     t.equal(pending, 0)
     t.end()
-  })
+  }
 })

@@ -147,13 +147,15 @@ module.exports = function (dag, opts = {}) {
       signature: node.signature,
       valueEncoding: 'binary'
     }
-    dag.add(node.links, node.value, opts, (err) => {
-      if (!err) {
-        return afterAdd(cb)
-      }
-      if (!err.notFound) return cb(err)
-      incoming.push(node, cb)
-    })
+
+    dag.add(node.links, node.value, opts)
+      .then(node => {
+        afterAdd(cb)
+      })
+      .catch(err => {
+        if (!err.notFound) return cb(err)
+        incoming.push(node, cb)
+      })
   }
 
   function afterAdd (cb) {
